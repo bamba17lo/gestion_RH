@@ -9,9 +9,18 @@ use App\Models\Donnee_Personnelle;
 use App\Models\User;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class UserController extends Controller
 {
+
+  public function index()
+  {
+    $admin = User::where('profil','admin')->paginate(6);
+    
+  
+    return view('admin.index',compact('admin'));
+  }
     public $userId = 0;
     
     public function create_user(){

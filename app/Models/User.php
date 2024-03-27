@@ -49,6 +49,12 @@ class User extends Authenticatable
 
     public function donnee_personnelle()
     {
-        return $this->belongsTo(Donnee_Personnelle::class);
+        return $this->belongsTo(Donnee_Personnelle::class,'id');
     }
+
+    public function donnee_professionnelle()
+    {
+        return $this->belongsTo(Donnee_Professionelle::class,'id');
+    }
+
 }

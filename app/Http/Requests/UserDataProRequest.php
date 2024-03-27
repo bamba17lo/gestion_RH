@@ -25,6 +25,7 @@ class UserDataProRequest extends FormRequest
             
             'emploi'=>'required',
             'salaire'=>'required|numeric',
+            'cv'=>['sometimes','file','mimes:pdf'],
         ];
     }
 
@@ -33,6 +34,7 @@ class UserDataProRequest extends FormRequest
         return [
             'emploi.required'=> "Choisissez le poste occupe",
             'salaire.required'=> "Remplissez ce champs",
+            'salaire.numeric'=> " Ce champs est de type numeric",
             'salaire.numeric'=> " Ce champs est de type numeric",
             
         ];

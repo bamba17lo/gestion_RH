@@ -12,11 +12,18 @@ class Donnee_Professionelle extends Model
     
     public function departement()
     {
-        return $this->belongsTo(Departement::class);
+        return $this->belongsTo(Departement::class,'id');
     }
 
     public function contrat()
     {
         return $this->belongsTo(Contrat::class);
     }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+
 }

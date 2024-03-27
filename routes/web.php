@@ -21,6 +21,8 @@ Route::get('/', function () {
     return view('index');
 });
 
+Route::get('index',[UserController::class,'index'])->name('admin.index');
+
 Route::get('create-user',[UserController::class,'create_user'])->name('user.create');
 Route::post('create-user',[UserController::class,'store_user'])->name('user.post.user');
 
