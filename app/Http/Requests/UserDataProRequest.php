@@ -25,7 +25,7 @@ class UserDataProRequest extends FormRequest
             
             'emploi'=>'required',
             'salaire'=>'required|numeric',
-            'cv'=>['sometimes','file','mimes:pdf'],
+            'cv'=>['sometimes','file','mimes:pdf,docx'],
         ];
     }
 

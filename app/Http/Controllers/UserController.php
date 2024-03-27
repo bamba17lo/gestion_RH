@@ -16,10 +16,21 @@ class UserController extends Controller
 
   public function index()
   {
-    $admin = User::where('profil','admin')->paginate(6);
-    
+    $admin = User::where('profil','admin')->paginate(5);
   
     return view('admin.index',compact('admin'));
+  }
+
+  public function index_gestio()
+  {
+    $gestionnaires = User::where('profil','gestionnaire')->with('donnee_personnelle')->paginate(6);
+    return view('gestionnaire.index',compact('gestionnaires'));
+  }
+
+  public function index_utilisateur()
+  {
+    $utilisateurs = User::where('profil','utilisateur')->with('donnee_personnelle')->paginate(6);
+    return view('utilisateur.index',compact('utilisateurs'));
   }
     public $userId = 0;
     

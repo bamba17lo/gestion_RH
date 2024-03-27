@@ -58,16 +58,15 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @forelse ($admin as $value)     
+                            @forelse ($gestionnaires as $value)     
                             <tr>
                                 
                                 <td class="cell"><span class="truncate">{{$value->nom_prenom}}</span></td>
                                 <td class="cell">{{$value->email}}</td>
                                 <td class="cell">{{$value->profil}}</td>
                                 <td class="cell">{{$value->donnee_personnelle->telephone}}</td>
-                                
-                                <td class="cell">{{$value->donnee_professionnelle->departement->libelle}}</td>
-                                <td class="cell"><span class="badge bg-success">{{$value->donnee_professionnelle->salaire}}</span>  Fcfa</td>
+                                <td class="cell">{{ $value->donnee_professionnelle->departement->libelle }}</td>
+                                <td class="cell"><span class="badge bg-success">{{ isset($value->donnee_professionnelle->salaire) ? $value->donnee_professionnelle->salaire : '' }}</span>  Fcfa</td>
                        
                                 <td class="cell">
                                     {{-- <button class="voir-cv-btn" data-cv="{{ asset('storage/' . $value->donnee_professionnelle->path) }}">Voir CV</button> --}}
@@ -89,7 +88,7 @@
             </div><!--//app-card-body-->		
         </div><!--//app-card-->
         <nav class="pagination mt-4 ">
-            {{ $admin->links()}}
+            {{ $gestionnaires->links()}}
         </nav><!--//app-pagination-->
         
     </div><!--//tab-pane-->               

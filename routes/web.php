@@ -21,7 +21,9 @@ Route::get('/', function () {
     return view('index');
 });
 
-Route::get('index',[UserController::class,'index'])->name('admin.index');
+Route::get('index-admin',[UserController::class,'index'])->name('admin.index');
+Route::get('index-gestionnaire',[UserController::class,'index_gestio'])->name('gestionnaire.index');
+Route::get('index-utilisateur',[UserController::class,'index_utilisateur'])->name('utilisateur.index');
 
 Route::get('create-user',[UserController::class,'create_user'])->name('user.create');
 Route::post('create-user',[UserController::class,'store_user'])->name('user.post.user');
