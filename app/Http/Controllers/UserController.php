@@ -13,6 +13,33 @@ use Illuminate\Support\Facades\Log;
 
 class UserController extends Controller
 {
+  public function index_view()
+  {
+    $nbrDepartement = Departement::count();
+    $nbrAdmin = User::where('profil','admin')->count();
+    $nbrGestionnaire = User::where('profil','admin')->count();
+    $nbrUtilisateur = User::where('profil','admin')->count();
+    $agent= User::count();
+    $agentCDI = User::with(['donnee_professionnelle', 'donnee_professionnelle.contrat'])
+                 ->whereHas('donnee_professionnelle.contrat', function ($query) {
+                     $query->where('type_contrat', 'CDI');
+                 })->count();
+
+    $agentCDD = User::with(['donnee_professionnelle', 'donnee_professionnelle.contrat'])
+                ->whereHas('donnee_professionnelle.contrat', function ($query) {
+                $query->where('type_contrat', 'CDD');
+                })->count();  
+    $agentPresta = User::with(['donnee_professionnelle', 'donnee_professionnelle.contrat'])
+                ->whereHas('donnee_professionnelle.contrat', function ($query) {
+                $query->where('type_contrat', 'Prestation_Service');
+                })->count();            
+                
+    $data = [
+      'labels' => ['Nombre d\'agent ', 'Nombre d\'agent CDI', 'Nombre d\'agent CDD', 'Nombre d\'agent Prestataire de service'],
+      'data' => [$agent, $agentCDI, $agentCDD, $agentPresta],
+  ];
+    return view('index',compact('data','nbrAdmin','nbrGestionnaire','nbrUtilisateur','nbrDepartement'));
+  }
 
   public function index()
   {
