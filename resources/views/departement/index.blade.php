@@ -60,12 +60,14 @@
                                 <td class="cell"><span class="truncate">{{$value->id}}</span></td>
                                 <td class="cell">{{$value->libelle}}</td>
                                 <td>
-                                    <a class="btn-sm app-btn-secondary" href="{{route('departements.edit',$value->id)}}">Modifier</a>
-                                    <a class="btn-sm app-btn-secondary" href="{{route('departements.delete',$value->id)}}">Supprimer</a>
+                                    @if (auth()->user()->profil === 'admin' || auth()->user()->profil === 'gestionnaire')
+                                        <a class="btn-sm app-btn-secondary" href="{{route('departements.edit',$value->id)}}">Modifier</a>
+                                        <a class="btn-sm app-btn-secondary" href="{{route('departements.delete',$value->id)}}">Supprimer</a>
+                                    @endif
                                 </td>
                             </tr>
                             @empty
-                            <td class="cell" colspan="6">Aucun employe ajoute</td>
+                            <td class="cell" colspan="6">Aucun Departement ajoute</td>
                                 
                             @endforelse
 

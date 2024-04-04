@@ -4,15 +4,24 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\UserDataRequest;
 use App\Http\Requests\UserRequest;
+use App\Models\CongeAbsence;
 use App\Models\Departement;
 use App\Models\Donnee_Personnelle;
 use App\Models\User;
 use Exception;
+use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 
 class UserController extends Controller
 {
+
+  public function connexion()
+  {
+    return view('auth.login');
+  }
   public function index_view()
   {
     $nbrDepartement = Departement::count();
@@ -38,7 +47,8 @@ class UserController extends Controller
       'labels' => ['Nombre d\'agent ', 'Nombre d\'agent CDI', 'Nombre d\'agent CDD', 'Nombre d\'agent Prestataire de service'],
       'data' => [$agent, $agentCDI, $agentCDD, $agentPresta],
   ];
-    return view('index',compact('data','nbrAdmin','nbrGestionnaire','nbrUtilisateur','nbrDepartement'));
+  $nbrnotification = CongeAbsence::where('lu',0)->Count();
+    return view('index',compact('data','nbrAdmin','nbrGestionnaire','nbrUtilisateur','nbrDepartement','nbrnotification'));
   }
 
   public function index()
@@ -73,6 +83,25 @@ class UserController extends Controller
         return view('admin.create_data');
     }
 
+    public function delete(User $gestionnaire)
+    {
+           $sup = $gestionnaire->delete();
+           return back();
+    }
+
+    public function deleteAdmin(User $admin)
+    {
+           $sup = $admin->delete();
+           return back();
+    }
+
+    public function deleteUtilisateur(User $utilisateur)
+    {
+           $sup = $utilisateur->delete();
+           return back();
+    }
+    
+
     public function store_user(UserRequest $request)
     {
         $data = $request->validated();
@@ -96,5 +125,90 @@ class UserController extends Controller
       }
       
       return view('admin.create_contrat')->with('user',$this->userId);
+    }
+
+    public function login(Request $request)
+    {
+      $dataForm = $request->only(['email','password']);
+        
+        if (Auth::attempt($dataForm)) {
+            return redirect()->route('index.view');
+        }else{
+            return back()->with('error','Parametre de connexion non reconuue');
+        }
+    }
+
+    public function compte()
+    {
+      $user = Auth::user();
+      return view('auth.compte',compact('user'));
+    }
+
+    public function updatePassword(Request $request){
+      $request->validate([
+        'old_password' => 'required',
+        'new_password' => 'required',
+      ]);
+
+      $user = Auth::user();
+      if(!Hash::check($request->old_password, $user->password)){
+        return back()->with('error','l\'ancien mot de passe est incorrect');
+      }
+
+      $user->password = Hash::make($request->new_password);
+      $user->save();
+      return back()->with('success', 'Mot de passe mis à jour avec succès.');
+    }
+
+    public function logout()
+    {
+        Auth::logout();
+        return redirect('/');
+    }
+
+    public function demande()
+    {
+      $user  = Auth::user();
+      return view('congeAbsence.create',compact('user'));
+    }
+    public function notifications()
+    {
+      $nbrnotification = CongeAbsence::where('lu',0)->Count();
+      $notifications  = CongeAbsence::where('lu',0)->paginate(4);
+      return view('notifications.index',compact('notifications','nbrnotification'));
+    }
+
+    public function storeDemande(Request $request)
+    {
+      $data  = $request->validate([
+        'type' => 'required',
+        'date_debut' => 'required',
+        'date_fin' => 'required',
+        'motif' => 'required'
+      ]);
+
+      $data['user_id'] = $request->user_id;
+      $data['statut'] = 'en_attente';
+      $data['lu'] = 0;
+
+      CongeAbsence::create($data);
+
+      return redirect('/index');
+    }
+
+    public function updateNotifications(CongeAbsence $notification)
+    {
+      $notification->lu = 1;
+      $notification->statut = "approuvee";
+      $notification->save();
+      return redirect('/notifications');
+    }
+
+    public function liste_des_demandes()
+    {
+      $user = Auth::user()->id;
+      $demandeConges  = CongeAbsence::where('user_id',$user)->where('type','conges')->latest()->paginate(5);
+      $demandeAbsence  = CongeAbsence::where('user_id',$user)->where('type','absence')->latest()->paginate(5);
+      return view('congeAbsence.mes_demandes',compact('demandeConges','demandeAbsence'));
     }
 }
