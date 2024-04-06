@@ -4,8 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\UserDataRequest;
 use App\Http\Requests\UserRequest;
+use App\Mail\AlertMail;
 use App\Models\CongeAbsence;
 use App\Models\Departement;
+use App\Models\Document;
 use App\Models\Donnee_Personnelle;
 use App\Models\User;
 use Exception;
@@ -14,6 +16,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 class UserController extends Controller
 {
@@ -24,6 +27,7 @@ class UserController extends Controller
   }
   public function index_view()
   {
+    
     $nbrDepartement = Departement::count();
     $nbrAdmin = User::where('profil','admin')->count();
     $nbrGestionnaire = User::where('profil','admin')->count();
@@ -47,6 +51,18 @@ class UserController extends Controller
       'labels' => ['Nombre d\'agent ', 'Nombre d\'agent CDI', 'Nombre d\'agent CDD', 'Nombre d\'agent Prestataire de service'],
       'data' => [$agent, $agentCDI, $agentCDD, $agentPresta],
   ];
+  
+  $user = User::where('alerte_envoyee',false)->with('donnee_professionnelle')->whereHas('donnee_professionnelle', function ($query) {
+    $query->whereHas('contrat', function ($query) {
+        $query->where('date_fin', '<=', now()->addMonth());
+    });})->get();
+    if ($user->count() >0) {
+        foreach ($user as $value) {
+           $mail =  Mail::to($value->email)->send(new AlertMail($value));
+           $value->update(['alerte_envoyee'=>true]);
+        }
+    }
+    
   $nbrnotification = CongeAbsence::where('lu',0)->Count();
     return view('index',compact('data','nbrAdmin','nbrGestionnaire','nbrUtilisateur','nbrDepartement','nbrnotification'));
   }
@@ -61,6 +77,16 @@ class UserController extends Controller
   public function index_gestio()
   {
     $gestionnaires = User::where('profil','gestionnaire')->with('donnee_personnelle')->paginate(6);
+    $user = User::where('alerte_envoyee',false)->with('donnee_professionnelle')->whereHas('donnee_professionnelle', function ($query) {
+      $query->whereHas('contrat', function ($query) {
+          $query->where('date_fin', '<=', now()->addMonth());
+      });})->get();
+      if ($user->count() >0) {
+          foreach ($user as $value) {
+             $mail =  Mail::to($value->email)->send(new AlertMail($value));
+             $value->update(['alerte_envoyee'=>true]);
+          }
+      }
     return view('gestionnaire.index',compact('gestionnaires'));
   }
 
@@ -173,9 +199,17 @@ class UserController extends Controller
     }
     public function notifications()
     {
-      $nbrnotification = CongeAbsence::where('lu',0)->Count();
-      $notifications  = CongeAbsence::where('lu',0)->paginate(4);
-      return view('notifications.index',compact('notifications','nbrnotification'));
+      $user = Auth::user();
+      if ($user->profil === "admin") {
+        $notifications  = CongeAbsence::where('lu',0)->paginate(4);
+
+      }elseif ($user->profil === "gestionnaire") {
+        $notifications  = CongeAbsence::where('lu',0)->where('user_id','!=',$user->id)
+                                                            ->whereDoesntHave('user', function($query) {
+                                                              $query->where('profil', 'admin');})
+                                                            ->paginate(4);
+      }
+      return view('notifications.index',compact('notifications'));
     }
 
     public function storeDemande(Request $request)
@@ -210,5 +244,12 @@ class UserController extends Controller
       $demandeConges  = CongeAbsence::where('user_id',$user)->where('type','conges')->latest()->paginate(5);
       $demandeAbsence  = CongeAbsence::where('user_id',$user)->where('type','absence')->latest()->paginate(5);
       return view('congeAbsence.mes_demandes',compact('demandeConges','demandeAbsence'));
+    }
+
+    public function alldocument()
+    {
+      $attestation = Document::whereNotNull('attestation')->paginate(5);
+      $contrat = Document::whereNotNull('contrat')->paginate(5);
+      return view('document.index',compact('attestation','contrat'));
     }
 }

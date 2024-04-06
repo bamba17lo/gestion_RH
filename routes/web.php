@@ -62,6 +62,8 @@ Route::middleware('auth')->group(function(){
         Route::get('index-gestionnaire',[UserController::class,'index_gestio'])->name('gestionnaire.index');
         Route::get('delete-gestionnaire/{gestionnaire}',[UserController::class,'delete'])->name('gestionnaire.delete');
         Route::get('index-departement',[DepartementController::class,'index'])->name('departement.index');
+        Route::get('tout-les-documents',[UserController::class,'alldocument'])->name('all.documents');
+        
         Route::get('notifications',[UserController::class,'notifications'])->name('notifications');
         Route::put('notifications/{notification}',[UserController::class,'updateNotifications'])->name('notification.put');
         Route::get('delete-departement/{departement}',[DepartementController::class,'delete'])->name('departements.delete');

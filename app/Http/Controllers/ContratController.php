@@ -23,4 +23,6 @@ class ContratController extends Controller
         $contrat_id = $contrat->id;
         return view('admin.create_dataPro', compact('user','departements','contrat_id'));
     }
+
+    
 }
